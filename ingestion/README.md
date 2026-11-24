@@ -1,4 +1,4 @@
-# Ingestion MQTT et jalon de semaine 1
+# Ingestion MQTT
 
 Ce service Python indépendant de FastAPI utilise Paho MQTT pour recevoir les
 messages et psycopg pour les transactions PostgreSQL. Il ne charge ni JWT ni `.env`
@@ -6,13 +6,15 @@ de l'API : Compose fournit son URL de base et le chemin du secret MQTT.
 
 ## Démarrer avec l'exploitation existante
 
-Depuis la racine du projet, pour l'exploitation d'identifiant 1 :
+Préparer la configuration Compose et créer une exploitation en suivant le
+[démarrage du projet](../README.md#démarrage-et-démonstration). Depuis la racine,
+utiliser le code saisi à l’inscription, ou l’identifiant SQL si on le connaît.
 
 ```bash
-sh infra/demarrer_simulation.sh 1
+sh infra/demarrer_simulation.sh --code CODE_EXPLOITATION
 ```
 
-Ce script démarre la base, prépare uniquement les parcelles manquantes p1/p2/p3,
+Ce script démarre la base, prépare les parcelles p1/p2/p3 et les vannes manquantes,
 lit le vrai code d'exploitation, génère les comptes MQTT, recharge le broker et
 lance l'ingestion et le simulateur. Il ne remplace pas les parcelles existantes,
 ne crée pas d'utilisateur et ne modifie pas `.env`. Il redémarre le broker pour
@@ -24,7 +26,7 @@ fourni au simulateur dans son volume de configuration. Les démarrages suivants
 avec `docker compose --profile simu up -d` réutilisent ce code. Une seule exploitation
 de simulation est sélectionnée à la fois ; les droits du simulateur ne couvrent
 pas les autres exploitations. Pour sélectionner une autre exploitation existante,
-relancer le script avec son identifiant. Un code contenant des espaces, slashs ou
+relancer le script avec son code ou son identifiant. Un code contenant des espaces, slashs ou
 caractères hors lettres ASCII/chiffres/tiret/underscore sera refusé.
 
 Depuis `infra/` :
@@ -42,7 +44,8 @@ secondes en temps réel (`--acceleration 1` dans Compose).
 
 ## Vérification réelle de la chaîne
 
-Après le démarrage précédent, depuis `infra/` :
+Après le démarrage précédent, depuis `infra/`, pour l’exploitation
+simulée d’identifiant 1 :
 
 ```bash
 docker compose --profile test run --rm --no-deps verification
@@ -53,7 +56,8 @@ conserve avec ses données ; son identifiant est affiché. Il vérifie le refus 
 l'accès anonyme et d'une publication dans une autre exploitation, puis publie une
 mesure valide, son doublon et une valeur aberrante. Il attend exactement deux
 lignes dans TimescaleDB : une valide et une invalide. Aucun nettoyage destructif
-n'est effectué. Pour une autre exploitation :
+n'est effectué. Pour une exploitation simulée d’un autre identifiant, passer son identifiant
+à la commande. Exemple pour l’identifiant 2 :
 
 ```bash
 docker compose --profile test run --rm --no-deps verification python -m app.verifier_chaine --exploitation-id 2
@@ -134,19 +138,17 @@ et un broker adaptés ; il n'est pas déclaré opérationnel par cette intégrat
 
 ## Tests locaux sans Docker
 
-Depuis la racine, dans l'environnement existant contenant Paho et psycopg :
+Depuis la racine, dans un environnement Python activé :
 
 ```bash
-source ~/nsz_env/bin/activate
+python -m pip install -r ingestion/requirements.txt
 cd ingestion
 python -B -m unittest discover -s tests -v
 ```
 
-Si nécessaire, installer `ingestion/requirements.txt` dans cet environnement.
-20 tests passent : validation, déclaration, bornes, dédoublonnage, préparation
-non destructive et acquittement. Les accès SQL et le client MQTT y sont simulés.
-Les tests API (37) se lancent séparément depuis `api/` : les deux services ont
-chacun leur package `app`, donc ne pas mélanger leurs chemins d'import.
+La suite couvre la validation, la déclaration, les bornes, le dédoublonnage,
+la préparation et l’acquittement. Les accès SQL et le client MQTT y sont simulés.
+Les [tests API](../README.md#tests-locaux) se lancent séparément depuis `api/`.
 
 Références utilisées : [Paho Client et manual_ack](https://eclipse.dev/paho/files/paho.mqtt.python/html/client.html),
 [Mosquitto : password_file et acl_file](https://mosquitto.org/man/mosquitto-conf-5.html),

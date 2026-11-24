@@ -1,9 +1,33 @@
 # Jaden Konekté
 
 Projet individuel de Master 2 Informatique — Applications et Services Web,
-Université des Antilles. Consigne : [Projet 2026–2027](Projet_2026_Jaden_Konekte.pdf).
+Université des Antilles. La consigne 2026–2027 est fournie séparément sous le
+nom `Projet_2026_Jaden_Konekte.pdf`.
+
+Jaden Konekté permet de suivre des parcelles agricoles, de consulter leurs
+mesures, de piloter des vannes simulées et de configurer l’arrosage automatique.
+Le tableau de bord donne aussi accès au diagnostic de feuilles de tomate et à
+un assistant qui répond à partir de fiches agronomiques.
+
+## Architecture actuelle
+
+| Composant | Rôle |
+|---|---|
+| [Tableau de bord](frontend/) et [API FastAPI](api/) | Comptes JWT, parcelles, mesures, commandes et mises à jour en temps réel par SSE |
+| [Simulateur](simulateur/), Mosquitto et [ingestion](ingestion/README.md) | Le simulateur publie les mesures sur MQTT. L’ingestion les valide et les stocke dans TimescaleDB. L’API publie les ordres de vanne et reçoit les états. |
+| [Arrosage](api/app/services/arrosage.py) | Les règles combinent l’humidité du sol, les prévisions Open-Meteo et l’état de la vanne. |
+| [Diagnostic CNN](ia/cnn/README.md) | Un service d’inférence ONNX analyse les photos de feuilles. L’API conserve le résultat associé à la parcelle. |
+| [Assistant RAG](ia/rag/README.md) | L’API recherche les passages dans pgvector et transmet la réponse d’Ollama et ses citations par SSE. |
+
+Le [code ESP32](esp32/) et le [serveur régional](serveur-central/), dont le
+[contrat est dans `contrats/`](contrats/reseau-regional.openapi.yaml), sont
+disponibles séparément de la démonstration Compose.
 
 ## Démarrage et démonstration
+
+Prévoir Docker avec Compose v2, OpenSSL et un accès Internet pour télécharger
+les images et les modèles. La recommandation d’irrigation a besoin d’accéder à
+Open-Meteo depuis l’API. Le dépôt fournit déjà le modèle CNN exporté.
 
 Sur une installation neuve, créer les deux fichiers locaux ignorés par Git.
 Le mot de passe PostgreSQL est hexadécimal pour être utilisable directement
@@ -42,27 +66,61 @@ publiés sont accessibles sur la machine locale.
    une vanne fermée et le respect du délai minimal. La commande et le
    déclenchement sont enregistrés dans `commande` et `historique`. En cas
    d’indisponibilité de la météo, la règle attend le cycle suivant.
-5. Charger un JPEG ou un PNG de feuille de tomate, puis poser une question
-   agronomique et vérifier la réponse SSE et ses citations.
+5. Charger un JPEG ou un PNG de feuille de tomate de 5 Mio maximum et vérifier
+   que la classe et son score s’affichent.
+6. Poser la question « Comment arroser les tomates ? » dans l’assistant et
+   vérifier l’apparition de la réponse puis des citations.
 
-Le contrat [OpenAPI 3.1](openapi.yaml) couvre ces routes. Les suites se lancent
-depuis les dossiers `api` et `ingestion` avec
-`python -B -m unittest discover -s tests -v`. Pour l’évaluation du RAG,
-lancer `python ia/rag/evaluer.py` depuis la racine quand Compose est prêt,
-saisir le jeton JWT, puis relire les réponses exportées et les comparer aux
-éléments attendus. Les modèles s’appuient sur les API
-[embeddings](https://docs.ollama.com/api/embed) et [chat](https://docs.ollama.com/api/chat)
-d’Ollama.
+### Points d’accès
+
+| Adresse | Usage |
+|---|---|
+| [127.0.0.1:8000/dashboard](http://127.0.0.1:8000/dashboard) | Tableau de bord |
+| [127.0.0.1:8000/docs](http://127.0.0.1:8000/docs) | Swagger. Après connexion, coller la valeur `access_token` dans **Authorize**. |
+| [127.0.0.1:8000/api/v1/sante/database](http://127.0.0.1:8000/api/v1/sante/database) | Vérification de la connexion à PostgreSQL |
+| [127.0.0.1:8001/health](http://127.0.0.1:8001/health) | Vérification du service d’inférence |
+
+Depuis `infra/`, consulter les journaux si un écran reste vide ou si un service
+est indisponible. Pour arrêter les conteneurs et conserver leurs volumes, utiliser
+`docker compose --profile simu stop`.
+
+```sh
+docker compose --profile simu ps -a
+docker compose --profile simu logs --tail 50 api ingestion simulateur inference-cnn ollama-init
+```
+
+### Tests locaux
+
+Depuis la racine, avec Python 3.12 comme dans les images API et ingestion.
+Les suites s’exécutent chacune depuis le répertoire du service, car les deux
+services utilisent un package nommé `app`.
+
+```sh
+python3 -m venv .venv
+. .venv/bin/activate
+python -m pip install -r api/requirements-dev.txt -r ingestion/requirements.txt
+(cd api && python -B -m unittest discover -s tests -v)
+(cd ingestion && python -B -m unittest discover -s tests -v)
+```
+
+Le [contrat OpenAPI 3.1](openapi.yaml) décrit les routes HTTP et SSE. Le
+[guide RAG](ia/rag/README.md) détaille l’évaluation des réponses et le
+[guide ingestion](ingestion/README.md) décrit le test MQTT avec TimescaleDB.
 
 ### État de la validation
 
 L’audit local a validé 42 tests API, 20 tests d’ingestion, la configuration
 Compose, la syntaxe JavaScript et l’inférence ONNX sur une image synthétique.
-Ce dernier essai valide le chargement et la réponse du service. Le [rapport provisoire](Rapport_Jaden_Konekte_provisoire.pdf) reprend ces vérifications. L’exactitude
-PlantVillage, les résultats de l’assistant sur les questions de référence,
-le démarrage de tous les conteneurs et la démonstration restent à mesurer.
+Le rapport provisoire, fourni séparément sous le nom
+`Rapport_Jaden_Konekte_provisoire.pdf`, reprend ces résultats. L’exactitude sur
+PlantVillage et les réponses de l’assistant aux questions de référence restent
+à évaluer. Le démarrage de tous les conteneurs et le parcours de démonstration
+restent à vérifier de bout en bout.
 
 ## Archive du bilan technique de la semaine 1
+
+Le bilan ci-dessous décrit l’état du projet au 16 novembre 2026. Pour le
+démarrage et les fonctionnalités actuelles, suivre les sections précédentes.
 
 **Bilan au 16 novembre 2026 : le jalon « mesures visibles en base » est atteint.**
 L'utilisateur a exécuté avec succès la chaîne simulateur → MQTT → ingestion →
