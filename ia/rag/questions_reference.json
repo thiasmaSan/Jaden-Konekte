@@ -1,0 +1,122 @@
+[
+  {
+    "id": 1,
+    "question": "Quand faut-il arroser les tomates dans la journée ?",
+    "source_attendue": "01_tomate_culture.md",
+    "elements_attendus": "tôt le matin ou en fin d'après-midi, au pied"
+  },
+  {
+    "id": 2,
+    "question": "Pourquoi mes tomates ont une tache noire sous le fruit ?",
+    "source_attendue": "01_tomate_culture.md",
+    "elements_attendus": "nécrose apicale, arrosage irrégulier, calcium"
+  },
+  {
+    "id": 3,
+    "question": "Combien de temps attendre avant de replanter des tomates au même endroit ?",
+    "source_attendue": "01_tomate_culture.md",
+    "elements_attendus": "trois à quatre ans, rotation, solanacées"
+  },
+  {
+    "id": 4,
+    "question": "Comment reconnaître le mildiou sur la tomate ?",
+    "source_attendue": "02_tomate_maladies.md",
+    "elements_attendus": "taches huileuses brun-vert, duvet blanc au revers"
+  },
+  {
+    "id": 5,
+    "question": "Quel insecte transmet le virus des feuilles jaunes en cuillère ?",
+    "source_attendue": "02_tomate_maladies.md",
+    "elements_attendus": "aleurode, Bemisia tabaci"
+  },
+  {
+    "id": 6,
+    "question": "Existe-t-il un traitement contre le TYLCV ?",
+    "source_attendue": "02_tomate_maladies.md",
+    "elements_attendus": "pas de traitement curatif ; prévention"
+  },
+  {
+    "id": 7,
+    "question": "Comment éviter la propagation du virus de la mosaïque ?",
+    "source_attendue": "02_tomate_maladies.md",
+    "elements_attendus": "mains, outils désinfectés, éliminer les plants"
+  },
+  {
+    "id": 8,
+    "question": "Ma plante de tomate flétrit d'un coup mais les feuilles restent vertes, qu'est-ce que c'est ?",
+    "source_attendue": "02_tomate_maladies.md",
+    "elements_attendus": "flétrissement bactérien, Ralstonia, non détecté par le modèle"
+  },
+  {
+    "id": 9,
+    "question": "Quelles conditions favorisent les acariens ?",
+    "source_attendue": "02_tomate_maladies.md",
+    "elements_attendus": "temps chaud et sec, stress hydrique"
+  },
+  {
+    "id": 10,
+    "question": "Quelle est la principale maladie de l'igname aux Antilles ?",
+    "source_attendue": "03_igname.md",
+    "elements_attendus": "anthracnose, Colletotrichum gloeosporioides"
+  },
+  {
+    "id": 11,
+    "question": "Pourquoi planter l'igname sur buttes ?",
+    "source_attendue": "03_igname.md",
+    "elements_attendus": "éviter l'excès d'eau, pourriture des tubercules"
+  },
+  {
+    "id": 12,
+    "question": "Quand arrêter d'arroser l'igname ?",
+    "source_attendue": "03_igname.md",
+    "elements_attendus": "fin de cycle, feuillage jaunit"
+  },
+  {
+    "id": 13,
+    "question": "Comment planter une christophine ?",
+    "source_attendue": "04_christophine.md",
+    "elements_attendus": "fruit germé à moitié enterré, treille"
+  },
+  {
+    "id": 14,
+    "question": "La christophine supporte-t-elle l'eau stagnante ?",
+    "source_attendue": "04_christophine.md",
+    "elements_attendus": "non, pourriture du collet, sol drainé"
+  },
+  {
+    "id": 15,
+    "question": "Mon capteur indique 999 % d'humidité, faut-il arrêter l'arrosage ?",
+    "source_attendue": "05_irrigation_sol.md",
+    "elements_attendus": "valeur aberrante, panne du capteur"
+  },
+  {
+    "id": 16,
+    "question": "À partir de quelle humidité du sol faut-il arroser ?",
+    "source_attendue": "05_irrigation_sol.md",
+    "elements_attendus": "20-30 % si pas de pluie prévue, < 20 % rapidement ; seuils indicatifs"
+  },
+  {
+    "id": 17,
+    "question": "Faut-il arroser si une averse est prévue ?",
+    "source_attendue": "05_irrigation_sol.md",
+    "elements_attendus": "non, tenir compte de la météo"
+  },
+  {
+    "id": 18,
+    "question": "Le modèle détecte du mildiou avec un score de 0,55 : que faire ?",
+    "source_attendue": "06_protocole_alerte.md",
+    "elements_attendus": "score < 0,7 : reprendre des photos, comparer, technicien"
+  },
+  {
+    "id": 19,
+    "question": "Quand publier une alerte sur le réseau régional ?",
+    "source_attendue": "06_protocole_alerte.md",
+    "elements_attendus": "après confirmation par l'exploitant"
+  },
+  {
+    "id": 20,
+    "question": "Quelle est la dose de fongicide à utiliser contre le mildiou ?",
+    "source_attendue": null,
+    "elements_attendus": "hors du corpus : l'assistant doit refuser de donner une dose et orienter vers un conseiller"
+  }
+]

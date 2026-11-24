@@ -1,0 +1,2814 @@
+openapi: 3.1.0
+info:
+  title: Jaden Konekté API
+  version: 1.0.0
+  description: API de suivi des exploitations agricoles connectées.
+servers:
+- url: http://localhost:8000
+tags:
+- name: Parcelles
+  description: Consultation des parcelles agricoles
+- name: Mesures
+  description: Historique des mesures IoT
+paths:
+  /api/v1/assistant/questions:
+    post:
+      tags:
+      - Assistant
+      summary: Interroger Assistant
+      operationId: interrogerAssistant
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuestionAgronome'
+        required: true
+      responses:
+        '200':
+          description: Événements SSE fragment, sources, fin ou erreur
+          content:
+            text/event-stream:
+              schema:
+                type: string
+        '401':
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                properties:
+                  type:
+                    type: string
+                    format: uri-reference
+                    title: Type
+                  title:
+                    type: string
+                    title: Title
+                  status:
+                    type: integer
+                    title: Status
+                  detail:
+                    type: string
+                    title: Detail
+                    default: ''
+                  instance:
+                    type: string
+                    title: Instance
+                    default: ''
+                type: object
+                required:
+                - type
+                - title
+                - status
+                title: Probleme
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/problem+json:
+              schema:
+                properties:
+                  type:
+                    type: string
+                    format: uri-reference
+                    title: Type
+                  title:
+                    type: string
+                    title: Title
+                  status:
+                    type: integer
+                    title: Status
+                  detail:
+                    type: string
+                    title: Detail
+                    default: ''
+                  instance:
+                    type: string
+                    title: Instance
+                    default: ''
+                type: object
+                required:
+                - type
+                - title
+                - status
+                title: Probleme
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                properties:
+                  type:
+                    type: string
+                    format: uri-reference
+                    title: Type
+                  title:
+                    type: string
+                    title: Title
+                  status:
+                    type: integer
+                    title: Status
+                  detail:
+                    type: string
+                    title: Detail
+                    default: ''
+                  instance:
+                    type: string
+                    title: Instance
+                    default: ''
+                type: object
+                required:
+                - type
+                - title
+                - status
+                title: Probleme
+        '503':
+          description: Service Unavailable
+          content:
+            application/problem+json:
+              schema:
+                properties:
+                  type:
+                    type: string
+                    format: uri-reference
+                    title: Type
+                  title:
+                    type: string
+                    title: Title
+                  status:
+                    type: integer
+                    title: Status
+                  detail:
+                    type: string
+                    title: Detail
+                    default: ''
+                  instance:
+                    type: string
+                    title: Instance
+                    default: ''
+                type: object
+                required:
+                - type
+                - title
+                - status
+                title: Probleme
+      security:
+      - bearerAuth: []
+  /api/v1/parcelles/{id}/diagnostics:
+    post:
+      tags:
+      - Diagnostics
+      summary: Creer Diagnostic
+      operationId: creerDiagnostic
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+          title: Id
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Body_creerDiagnostic'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Diagnostic'
+        '401':
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                properties:
+                  type:
+                    format: uri-reference
+                    title: Type
+                    type: string
+                  title:
+                    title: Title
+                    type: string
+                  status:
+                    title: Status
+                    type: integer
+                  detail:
+                    default: ''
+                    title: Detail
+                    type: string
+                  instance:
+                    default: ''
+                    title: Instance
+                    type: string
+                required:
+                - type
+                - title
+                - status
+                title: Probleme
+                type: object
+        '404':
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                properties:
+                  type:
+                    format: uri-reference
+                    title: Type
+                    type: string
+                  title:
+                    title: Title
+                    type: string
+                  status:
+                    title: Status
+                    type: integer
+                  detail:
+                    default: ''
+                    title: Detail
+                    type: string
+                  instance:
+                    default: ''
+                    title: Instance
+                    type: string
+                required:
+                - type
+                - title
+                - status
+                title: Probleme
+                type: object
+        '413':
+          description: Request Entity Too Large
+          content:
+            application/problem+json:
+              schema:
+                properties:
+                  type:
+                    format: uri-reference
+                    title: Type
+                    type: string
+                  title:
+                    title: Title
+                    type: string
+                  status:
+                    title: Status
+                    type: integer
+                  detail:
+                    default: ''
+                    title: Detail
+                    type: string
+                  instance:
+                    default: ''
+                    title: Instance
+                    type: string
+                required:
+                - type
+                - title
+                - status
+                title: Probleme
+                type: object
+        '415':
+          description: Unsupported Media Type
+          content:
+            application/problem+json:
+              schema:
+                properties:
+                  type:
+                    format: uri-reference
+                    title: Type
+                    type: string
+                  title:
+                    title: Title
+                    type: string
+                  status:
+                    title: Status
+                    type: integer
+                  detail:
+                    default: ''
+                    title: Detail
+                    type: string
+                  instance:
+                    default: ''
+                    title: Instance
+                    type: string
+                required:
+                - type
+                - title
+                - status
+                title: Probleme
+                type: object
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/problem+json:
+              schema:
+                properties:
+                  type:
+                    format: uri-reference
+                    title: Type
+                    type: string
+                  title:
+                    title: Title
+                    type: string
+                  status:
+                    title: Status
+                    type: integer
+                  detail:
+                    default: ''
+                    title: Detail
+                    type: string
+                  instance:
+                    default: ''
+                    title: Instance
+                    type: string
+                required:
+                - type
+                - title
+                - status
+                title: Probleme
+                type: object
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                properties:
+                  type:
+                    format: uri-reference
+                    title: Type
+                    type: string
+                  title:
+                    title: Title
+                    type: string
+                  status:
+                    title: Status
+                    type: integer
+                  detail:
+                    default: ''
+                    title: Detail
+                    type: string
+                  instance:
+                    default: ''
+                    title: Instance
+                    type: string
+                required:
+                - type
+                - title
+                - status
+                title: Probleme
+                type: object
+        '502':
+          description: Bad Gateway
+          content:
+            application/problem+json:
+              schema:
+                properties:
+                  type:
+                    format: uri-reference
+                    title: Type
+                    type: string
+                  title:
+                    title: Title
+                    type: string
+                  status:
+                    title: Status
+                    type: integer
+                  detail:
+                    default: ''
+                    title: Detail
+                    type: string
+                  instance:
+                    default: ''
+                    title: Instance
+                    type: string
+                required:
+                - type
+                - title
+                - status
+                title: Probleme
+                type: object
+        '503':
+          description: Service Unavailable
+          content:
+            application/problem+json:
+              schema:
+                properties:
+                  type:
+                    format: uri-reference
+                    title: Type
+                    type: string
+                  title:
+                    title: Title
+                    type: string
+                  status:
+                    title: Status
+                    type: integer
+                  detail:
+                    default: ''
+                    title: Detail
+                    type: string
+                  instance:
+                    default: ''
+                    title: Instance
+                    type: string
+                required:
+                - type
+                - title
+                - status
+                title: Probleme
+                type: object
+    get:
+      tags:
+      - Diagnostics
+      summary: Lister Diagnostics
+      operationId: listerDiagnostics
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+          title: Id
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 100
+          title: Limit
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+          title: Offset
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Diagnostic'
+                title: Response Listerdiagnostics
+        '401':
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                properties:
+                  type:
+                    format: uri-reference
+                    title: Type
+                    type: string
+                  title:
+                    title: Title
+                    type: string
+                  status:
+                    title: Status
+                    type: integer
+                  detail:
+                    default: ''
+                    title: Detail
+                    type: string
+                  instance:
+                    default: ''
+                    title: Instance
+                    type: string
+                required:
+                - type
+                - title
+                - status
+                title: Probleme
+                type: object
+        '404':
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                properties:
+                  type:
+                    format: uri-reference
+                    title: Type
+                    type: string
+                  title:
+                    title: Title
+                    type: string
+                  status:
+                    title: Status
+                    type: integer
+                  detail:
+                    default: ''
+                    title: Detail
+                    type: string
+                  instance:
+                    default: ''
+                    title: Instance
+                    type: string
+                required:
+                - type
+                - title
+                - status
+                title: Probleme
+                type: object
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/problem+json:
+              schema:
+                properties:
+                  type:
+                    format: uri-reference
+                    title: Type
+                    type: string
+                  title:
+                    title: Title
+                    type: string
+                  status:
+                    title: Status
+                    type: integer
+                  detail:
+                    default: ''
+                    title: Detail
+                    type: string
+                  instance:
+                    default: ''
+                    title: Instance
+                    type: string
+                required:
+                - type
+                - title
+                - status
+                title: Probleme
+                type: object
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                properties:
+                  type:
+                    format: uri-reference
+                    title: Type
+                    type: string
+                  title:
+                    title: Title
+                    type: string
+                  status:
+                    title: Status
+                    type: integer
+                  detail:
+                    default: ''
+                    title: Detail
+                    type: string
+                  instance:
+                    default: ''
+                    title: Instance
+                    type: string
+                required:
+                - type
+                - title
+                - status
+                title: Probleme
+                type: object
+        '503':
+          description: Service Unavailable
+          content:
+            application/problem+json:
+              schema:
+                properties:
+                  type:
+                    format: uri-reference
+                    title: Type
+                    type: string
+                  title:
+                    title: Title
+                    type: string
+                  status:
+                    title: Status
+                    type: integer
+                  detail:
+                    default: ''
+                    title: Detail
+                    type: string
+                  instance:
+                    default: ''
+                    title: Instance
+                    type: string
+                required:
+                - type
+                - title
+                - status
+                title: Probleme
+                type: object
+  /api/v1/parcelles/{id}/regles/automatique:
+    get:
+      tags:
+      - Irrigation
+      summary: Consulter Regle
+      operationId: consulterRegleAutomatique
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+          title: Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfigurationArrosage'
+        '401':
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                properties:
+                  type:
+                    format: uri-reference
+                    title: Type
+                    type: string
+                  title:
+                    title: Title
+                    type: string
+                  status:
+                    title: Status
+                    type: integer
+                  detail:
+                    default: ''
+                    title: Detail
+                    type: string
+                  instance:
+                    default: ''
+                    title: Instance
+                    type: string
+                required:
+                - type
+                - title
+                - status
+                title: Probleme
+                type: object
+        '404':
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                properties:
+                  type:
+                    format: uri-reference
+                    title: Type
+                    type: string
+                  title:
+                    title: Title
+                    type: string
+                  status:
+                    title: Status
+                    type: integer
+                  detail:
+                    default: ''
+                    title: Detail
+                    type: string
+                  instance:
+                    default: ''
+                    title: Instance
+                    type: string
+                required:
+                - type
+                - title
+                - status
+                title: Probleme
+                type: object
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/problem+json:
+              schema:
+                properties:
+                  type:
+                    format: uri-reference
+                    title: Type
+                    type: string
+                  title:
+                    title: Title
+                    type: string
+                  status:
+                    title: Status
+                    type: integer
+                  detail:
+                    default: ''
+                    title: Detail
+                    type: string
+                  instance:
+                    default: ''
+                    title: Instance
+                    type: string
+                required:
+                - type
+                - title
+                - status
+                title: Probleme
+                type: object
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                properties:
+                  type:
+                    format: uri-reference
+                    title: Type
+                    type: string
+                  title:
+                    title: Title
+                    type: string
+                  status:
+                    title: Status
+                    type: integer
+                  detail:
+                    default: ''
+                    title: Detail
+                    type: string
+                  instance:
+                    default: ''
+                    title: Instance
+                    type: string
+                required:
+                - type
+                - title
+                - status
+                title: Probleme
+                type: object
+        '503':
+          description: Service Unavailable
+          content:
+            application/problem+json:
+              schema:
+                properties:
+                  type:
+                    format: uri-reference
+                    title: Type
+                    type: string
+                  title:
+                    title: Title
+                    type: string
+                  status:
+                    title: Status
+                    type: integer
+                  detail:
+                    default: ''
+                    title: Detail
+                    type: string
+                  instance:
+                    default: ''
+                    title: Instance
+                    type: string
+                required:
+                - type
+                - title
+                - status
+                title: Probleme
+                type: object
+    put:
+      tags:
+      - Irrigation
+      summary: Configurer Regle
+      operationId: configurerRegleAutomatique
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+          title: Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfigurationArrosage'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfigurationArrosage'
+        '401':
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                properties:
+                  type:
+                    format: uri-reference
+                    title: Type
+                    type: string
+                  title:
+                    title: Title
+                    type: string
+                  status:
+                    title: Status
+                    type: integer
+                  detail:
+                    default: ''
+                    title: Detail
+                    type: string
+                  instance:
+                    default: ''
+                    title: Instance
+                    type: string
+                required:
+                - type
+                - title
+                - status
+                title: Probleme
+                type: object
+        '403':
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                properties:
+                  type:
+                    format: uri-reference
+                    title: Type
+                    type: string
+                  title:
+                    title: Title
+                    type: string
+                  status:
+                    title: Status
+                    type: integer
+                  detail:
+                    default: ''
+                    title: Detail
+                    type: string
+                  instance:
+                    default: ''
+                    title: Instance
+                    type: string
+                required:
+                - type
+                - title
+                - status
+                title: Probleme
+                type: object
+        '404':
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                properties:
+                  type:
+                    format: uri-reference
+                    title: Type
+                    type: string
+                  title:
+                    title: Title
+                    type: string
+                  status:
+                    title: Status
+                    type: integer
+                  detail:
+                    default: ''
+                    title: Detail
+                    type: string
+                  instance:
+                    default: ''
+                    title: Instance
+                    type: string
+                required:
+                - type
+                - title
+                - status
+                title: Probleme
+                type: object
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/problem+json:
+              schema:
+                properties:
+                  type:
+                    format: uri-reference
+                    title: Type
+                    type: string
+                  title:
+                    title: Title
+                    type: string
+                  status:
+                    title: Status
+                    type: integer
+                  detail:
+                    default: ''
+                    title: Detail
+                    type: string
+                  instance:
+                    default: ''
+                    title: Instance
+                    type: string
+                required:
+                - type
+                - title
+                - status
+                title: Probleme
+                type: object
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                properties:
+                  type:
+                    format: uri-reference
+                    title: Type
+                    type: string
+                  title:
+                    title: Title
+                    type: string
+                  status:
+                    title: Status
+                    type: integer
+                  detail:
+                    default: ''
+                    title: Detail
+                    type: string
+                  instance:
+                    default: ''
+                    title: Instance
+                    type: string
+                required:
+                - type
+                - title
+                - status
+                title: Probleme
+                type: object
+        '503':
+          description: Service Unavailable
+          content:
+            application/problem+json:
+              schema:
+                properties:
+                  type:
+                    format: uri-reference
+                    title: Type
+                    type: string
+                  title:
+                    title: Title
+                    type: string
+                  status:
+                    title: Status
+                    type: integer
+                  detail:
+                    default: ''
+                    title: Detail
+                    type: string
+                  instance:
+                    default: ''
+                    title: Instance
+                    type: string
+                required:
+                - type
+                - title
+                - status
+                title: Probleme
+                type: object
+
+  /api/v1/parcelles/{id}/irrigation/recommandation:
+    get:
+      tags:
+        - Irrigation
+      summary: Calculer une recommandation d'irrigation
+      operationId: recommanderIrrigation
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ParcelleId'
+        - name: latitude
+          in: query
+          required: true
+          schema:
+            type: number
+            minimum: -90
+            maximum: 90
+        - name: longitude
+          in: query
+          required: true
+          schema:
+            type: number
+            minimum: -180
+            maximum: 180
+      responses:
+        '200':
+          description: Recommandation calculée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecommandationIrrigation'
+        '401':
+          $ref: '#/components/responses/NonAutorise'
+        '404':
+          $ref: '#/components/responses/Introuvable'
+        '422':
+          $ref: '#/components/responses/DonneesInvalides'
+        '500':
+          $ref: '#/components/responses/ErreurInterne'
+        '503':
+          $ref: '#/components/responses/Indisponible'
+
+  /api/v1/parcelles/{id}/vanne/commandes:
+    post:
+      tags:
+      - Vannes
+      summary: Commander Vanne
+      operationId: commanderVanne
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+          title: Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NouvelleCommandeVanne'
+      responses:
+        '202':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandeVanne'
+        '401':
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                properties:
+                  type:
+                    format: uri-reference
+                    title: Type
+                    type: string
+                  title:
+                    title: Title
+                    type: string
+                  status:
+                    title: Status
+                    type: integer
+                  detail:
+                    default: ''
+                    title: Detail
+                    type: string
+                  instance:
+                    default: ''
+                    title: Instance
+                    type: string
+                required:
+                - type
+                - title
+                - status
+                title: Probleme
+                type: object
+        '403':
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                properties:
+                  type:
+                    format: uri-reference
+                    title: Type
+                    type: string
+                  title:
+                    title: Title
+                    type: string
+                  status:
+                    title: Status
+                    type: integer
+                  detail:
+                    default: ''
+                    title: Detail
+                    type: string
+                  instance:
+                    default: ''
+                    title: Instance
+                    type: string
+                required:
+                - type
+                - title
+                - status
+                title: Probleme
+                type: object
+        '404':
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                properties:
+                  type:
+                    format: uri-reference
+                    title: Type
+                    type: string
+                  title:
+                    title: Title
+                    type: string
+                  status:
+                    title: Status
+                    type: integer
+                  detail:
+                    default: ''
+                    title: Detail
+                    type: string
+                  instance:
+                    default: ''
+                    title: Instance
+                    type: string
+                required:
+                - type
+                - title
+                - status
+                title: Probleme
+                type: object
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/problem+json:
+              schema:
+                properties:
+                  type:
+                    format: uri-reference
+                    title: Type
+                    type: string
+                  title:
+                    title: Title
+                    type: string
+                  status:
+                    title: Status
+                    type: integer
+                  detail:
+                    default: ''
+                    title: Detail
+                    type: string
+                  instance:
+                    default: ''
+                    title: Instance
+                    type: string
+                required:
+                - type
+                - title
+                - status
+                title: Probleme
+                type: object
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                properties:
+                  type:
+                    format: uri-reference
+                    title: Type
+                    type: string
+                  title:
+                    title: Title
+                    type: string
+                  status:
+                    title: Status
+                    type: integer
+                  detail:
+                    default: ''
+                    title: Detail
+                    type: string
+                  instance:
+                    default: ''
+                    title: Instance
+                    type: string
+                required:
+                - type
+                - title
+                - status
+                title: Probleme
+                type: object
+        '503':
+          description: Service Unavailable
+          content:
+            application/problem+json:
+              schema:
+                properties:
+                  type:
+                    format: uri-reference
+                    title: Type
+                    type: string
+                  title:
+                    title: Title
+                    type: string
+                  status:
+                    title: Status
+                    type: integer
+                  detail:
+                    default: ''
+                    title: Detail
+                    type: string
+                  instance:
+                    default: ''
+                    title: Instance
+                    type: string
+                required:
+                - type
+                - title
+                - status
+                title: Probleme
+                type: object
+
+  /api/v1/parcelles/{id}/vanne/commandes/{commande_id}:
+    get:
+      tags:
+      - Vannes
+      summary: Consulter Commande
+      operationId: consulterCommandeVanne
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+          title: Id
+      - name: commande_id
+        in: path
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          title: Commande Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandeVanne'
+        '401':
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                properties:
+                  type:
+                    format: uri-reference
+                    title: Type
+                    type: string
+                  title:
+                    title: Title
+                    type: string
+                  status:
+                    title: Status
+                    type: integer
+                  detail:
+                    default: ''
+                    title: Detail
+                    type: string
+                  instance:
+                    default: ''
+                    title: Instance
+                    type: string
+                required:
+                - type
+                - title
+                - status
+                title: Probleme
+                type: object
+        '403':
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                properties:
+                  type:
+                    format: uri-reference
+                    title: Type
+                    type: string
+                  title:
+                    title: Title
+                    type: string
+                  status:
+                    title: Status
+                    type: integer
+                  detail:
+                    default: ''
+                    title: Detail
+                    type: string
+                  instance:
+                    default: ''
+                    title: Instance
+                    type: string
+                required:
+                - type
+                - title
+                - status
+                title: Probleme
+                type: object
+        '404':
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                properties:
+                  type:
+                    format: uri-reference
+                    title: Type
+                    type: string
+                  title:
+                    title: Title
+                    type: string
+                  status:
+                    title: Status
+                    type: integer
+                  detail:
+                    default: ''
+                    title: Detail
+                    type: string
+                  instance:
+                    default: ''
+                    title: Instance
+                    type: string
+                required:
+                - type
+                - title
+                - status
+                title: Probleme
+                type: object
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/problem+json:
+              schema:
+                properties:
+                  type:
+                    format: uri-reference
+                    title: Type
+                    type: string
+                  title:
+                    title: Title
+                    type: string
+                  status:
+                    title: Status
+                    type: integer
+                  detail:
+                    default: ''
+                    title: Detail
+                    type: string
+                  instance:
+                    default: ''
+                    title: Instance
+                    type: string
+                required:
+                - type
+                - title
+                - status
+                title: Probleme
+                type: object
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                properties:
+                  type:
+                    format: uri-reference
+                    title: Type
+                    type: string
+                  title:
+                    title: Title
+                    type: string
+                  status:
+                    title: Status
+                    type: integer
+                  detail:
+                    default: ''
+                    title: Detail
+                    type: string
+                  instance:
+                    default: ''
+                    title: Instance
+                    type: string
+                required:
+                - type
+                - title
+                - status
+                title: Probleme
+                type: object
+        '503':
+          description: Service Unavailable
+          content:
+            application/problem+json:
+              schema:
+                properties:
+                  type:
+                    format: uri-reference
+                    title: Type
+                    type: string
+                  title:
+                    title: Title
+                    type: string
+                  status:
+                    title: Status
+                    type: integer
+                  detail:
+                    default: ''
+                    title: Detail
+                    type: string
+                  instance:
+                    default: ''
+                    title: Instance
+                    type: string
+                required:
+                - type
+                - title
+                - status
+                title: Probleme
+                type: object
+
+  /api/v1/parcelles/{id}/evenements:
+    get:
+      tags:
+      - Temps réel
+      summary: Suivre Evenements Parcelle
+      operationId: suivreEvenementsParcelle
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+          title: Id
+      responses:
+        '200':
+          description: Flux SSE
+          content:
+            text/event-stream:
+              schema:
+                type: string
+        '401':
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                properties:
+                  type:
+                    format: uri-reference
+                    title: Type
+                    type: string
+                  title:
+                    title: Title
+                    type: string
+                  status:
+                    title: Status
+                    type: integer
+                  detail:
+                    default: ''
+                    title: Detail
+                    type: string
+                  instance:
+                    default: ''
+                    title: Instance
+                    type: string
+                required:
+                - type
+                - title
+                - status
+                title: Probleme
+                type: object
+        '404':
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                properties:
+                  type:
+                    format: uri-reference
+                    title: Type
+                    type: string
+                  title:
+                    title: Title
+                    type: string
+                  status:
+                    title: Status
+                    type: integer
+                  detail:
+                    default: ''
+                    title: Detail
+                    type: string
+                  instance:
+                    default: ''
+                    title: Instance
+                    type: string
+                required:
+                - type
+                - title
+                - status
+                title: Probleme
+                type: object
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/problem+json:
+              schema:
+                properties:
+                  type:
+                    format: uri-reference
+                    title: Type
+                    type: string
+                  title:
+                    title: Title
+                    type: string
+                  status:
+                    title: Status
+                    type: integer
+                  detail:
+                    default: ''
+                    title: Detail
+                    type: string
+                  instance:
+                    default: ''
+                    title: Instance
+                    type: string
+                required:
+                - type
+                - title
+                - status
+                title: Probleme
+                type: object
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                properties:
+                  type:
+                    format: uri-reference
+                    title: Type
+                    type: string
+                  title:
+                    title: Title
+                    type: string
+                  status:
+                    title: Status
+                    type: integer
+                  detail:
+                    default: ''
+                    title: Detail
+                    type: string
+                  instance:
+                    default: ''
+                    title: Instance
+                    type: string
+                required:
+                - type
+                - title
+                - status
+                title: Probleme
+                type: object
+        '503':
+          description: Service Unavailable
+          content:
+            application/problem+json:
+              schema:
+                properties:
+                  type:
+                    format: uri-reference
+                    title: Type
+                    type: string
+                  title:
+                    title: Title
+                    type: string
+                  status:
+                    title: Status
+                    type: integer
+                  detail:
+                    default: ''
+                    title: Detail
+                    type: string
+                  instance:
+                    default: ''
+                    title: Instance
+                    type: string
+                required:
+                - type
+                - title
+                - status
+                title: Probleme
+                type: object
+
+  /api/v1/parcelles/{id}/tableau-de-bord:
+    get:
+      tags:
+      - Parcelles
+      - Tableau de bord
+      summary: Obtenir Tableau De Bord
+      description: 'Retourne l''état actuel d''une parcelle :
+  
+        - informations générales ;
+  
+        - dernières mesures valides ;
+  
+        - disponibilité estimée des capteurs ;
+  
+        - états connus des vannes.'
+      operationId: obtenirTableauDeBord
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+          title: Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TableauDeBord'
+        '401':
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                properties:
+                  type:
+                    format: uri-reference
+                    title: Type
+                    type: string
+                  title:
+                    title: Title
+                    type: string
+                  status:
+                    title: Status
+                    type: integer
+                  detail:
+                    default: ''
+                    title: Detail
+                    type: string
+                  instance:
+                    default: ''
+                    title: Instance
+                    type: string
+                required:
+                - type
+                - title
+                - status
+                title: Probleme
+                type: object
+        '404':
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                properties:
+                  type:
+                    format: uri-reference
+                    title: Type
+                    type: string
+                  title:
+                    title: Title
+                    type: string
+                  status:
+                    title: Status
+                    type: integer
+                  detail:
+                    default: ''
+                    title: Detail
+                    type: string
+                  instance:
+                    default: ''
+                    title: Instance
+                    type: string
+                required:
+                - type
+                - title
+                - status
+                title: Probleme
+                type: object
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/problem+json:
+              schema:
+                properties:
+                  type:
+                    format: uri-reference
+                    title: Type
+                    type: string
+                  title:
+                    title: Title
+                    type: string
+                  status:
+                    title: Status
+                    type: integer
+                  detail:
+                    default: ''
+                    title: Detail
+                    type: string
+                  instance:
+                    default: ''
+                    title: Instance
+                    type: string
+                required:
+                - type
+                - title
+                - status
+                title: Probleme
+                type: object
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                properties:
+                  type:
+                    format: uri-reference
+                    title: Type
+                    type: string
+                  title:
+                    title: Title
+                    type: string
+                  status:
+                    title: Status
+                    type: integer
+                  detail:
+                    default: ''
+                    title: Detail
+                    type: string
+                  instance:
+                    default: ''
+                    title: Instance
+                    type: string
+                required:
+                - type
+                - title
+                - status
+                title: Probleme
+                type: object
+        '503':
+          description: Service Unavailable
+          content:
+            application/problem+json:
+              schema:
+                properties:
+                  type:
+                    format: uri-reference
+                    title: Type
+                    type: string
+                  title:
+                    title: Title
+                    type: string
+                  status:
+                    title: Status
+                    type: integer
+                  detail:
+                    default: ''
+                    title: Detail
+                    type: string
+                  instance:
+                    default: ''
+                    title: Instance
+                    type: string
+                required:
+                - type
+                - title
+                - status
+                title: Probleme
+                type: object
+
+  /api/v1/auth/inscription:
+    post:
+      tags:
+      - Authentification
+      summary: Créer un compte exploitant
+      operationId: inscrireUtilisateur
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Inscription'
+      responses:
+        '201':
+          description: Compte et exploitation créés
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UtilisateurPublic'
+        '409':
+          description: Courriel ou code d'exploitation déjà utilisé
+          content: &id001
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Probleme'
+        '422':
+          $ref: '#/components/responses/DonneesInvalides'
+        '503':
+          $ref: '#/components/responses/Indisponible'
+        '500':
+          $ref: '#/components/responses/ErreurInterne'
+  /api/v1/auth/connexion:
+    post:
+      tags:
+      - Authentification
+      summary: Se connecter
+      operationId: connecterUtilisateur
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Connexion'
+      responses:
+        '200':
+          description: Jeton d'accès JWT
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Jeton'
+        '401':
+          $ref: '#/components/responses/NonAutorise'
+        '422':
+          $ref: '#/components/responses/DonneesInvalides'
+        '503':
+          $ref: '#/components/responses/Indisponible'
+        '500':
+          $ref: '#/components/responses/ErreurInterne'
+  /api/v1/parcelles:
+    post:
+      tags:
+      - Parcelles
+      summary: Créer une parcelle dans une exploitation accessible
+      operationId: creerParcelle
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreationParcelle'
+      responses:
+        '201':
+          description: Parcelle créée
+          headers:
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Parcelle'
+        '401':
+          $ref: '#/components/responses/NonAutorise'
+        '403':
+          $ref: '#/components/responses/RoleInsuffisant'
+        '404':
+          $ref: '#/components/responses/Introuvable'
+        '409':
+          $ref: '#/components/responses/CodeParcelleExistant'
+        '422':
+          $ref: '#/components/responses/DonneesInvalides'
+        '503':
+          $ref: '#/components/responses/Indisponible'
+        '500':
+          $ref: '#/components/responses/ErreurInterne'
+    get:
+      tags:
+      - Parcelles
+      summary: Lister les parcelles accessibles
+      operationId: listerParcelles
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          default: 20
+          minimum: 1
+          maximum: 100
+      - name: offset
+        in: query
+        schema:
+          type: integer
+          default: 0
+          minimum: 0
+      responses:
+        '200':
+          description: Liste des parcelles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Parcelle'
+        '401':
+          $ref: '#/components/responses/NonAutorise'
+        '422':
+          $ref: '#/components/responses/DonneesInvalides'
+        '503':
+          $ref: '#/components/responses/Indisponible'
+        '500':
+          $ref: '#/components/responses/ErreurInterne'
+  /api/v1/parcelles/{id}:
+    delete:
+      tags:
+      - Parcelles
+      summary: Supprimer une parcelle sans données liées
+      description: Réservé aux exploitants et administrateurs membres de l'exploitation.
+        Refus si capteur, équipement, règle ou diagnostic lié.
+      operationId: supprimerParcelle
+      security:
+      - bearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/ParcelleId'
+      responses:
+        '204':
+          description: Parcelle supprimée, sans corps de réponse
+        '401':
+          $ref: '#/components/responses/NonAutorise'
+        '403':
+          $ref: '#/components/responses/RoleInsuffisant'
+        '404':
+          $ref: '#/components/responses/Introuvable'
+        '409':
+          description: La parcelle possède des données liées ; suppression refusée
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Probleme'
+        '422':
+          $ref: '#/components/responses/DonneesInvalides'
+        '503':
+          $ref: '#/components/responses/Indisponible'
+        '500':
+          $ref: '#/components/responses/ErreurInterne'
+    patch:
+      tags:
+      - Parcelles
+      summary: Modifier les propriétés d'une parcelle accessible
+      operationId: modifierParcelle
+      security:
+      - bearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/ParcelleId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ModificationParcelle'
+      responses:
+        '200':
+          description: Parcelle modifiée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Parcelle'
+        '401':
+          $ref: '#/components/responses/NonAutorise'
+        '403':
+          $ref: '#/components/responses/RoleInsuffisant'
+        '404':
+          $ref: '#/components/responses/Introuvable'
+        '422':
+          $ref: '#/components/responses/DonneesInvalides'
+        '503':
+          $ref: '#/components/responses/Indisponible'
+        '500':
+          $ref: '#/components/responses/ErreurInterne'
+    get:
+      tags:
+      - Parcelles
+      summary: Consulter une parcelle
+      operationId: obtenirParcelle
+      security:
+      - bearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/ParcelleId'
+      responses:
+        '200':
+          description: Parcelle trouvée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Parcelle'
+        '401':
+          $ref: '#/components/responses/NonAutorise'
+        '404':
+          $ref: '#/components/responses/Introuvable'
+        '422':
+          $ref: '#/components/responses/DonneesInvalides'
+        '503':
+          $ref: '#/components/responses/Indisponible'
+        '500':
+          $ref: '#/components/responses/ErreurInterne'
+  /api/v1/parcelles/{id}/mesures:
+    get:
+      tags:
+      - Mesures
+      summary: Consulter les mesures d'une parcelle
+      operationId: listerMesures
+      security:
+      - bearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/ParcelleId'
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          default: 100
+          minimum: 1
+          maximum: 1000
+      - name: offset
+        in: query
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+      responses:
+        '200':
+          description: Mesures enregistrées
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Mesure'
+        '401':
+          $ref: '#/components/responses/NonAutorise'
+        '404':
+          $ref: '#/components/responses/Introuvable'
+        '422':
+          $ref: '#/components/responses/DonneesInvalides'
+        '503':
+          $ref: '#/components/responses/Indisponible'
+        '500':
+          $ref: '#/components/responses/ErreurInterne'
+  /api/v1/sante:
+    get:
+      tags:
+      - Système
+      operationId: verifierSante
+      security: []
+      responses:
+        '200':
+          description: API active
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sante'
+  /api/v1/sante/database:
+    get:
+      tags:
+      - Système
+      operationId: verifierBase
+      security: []
+      responses:
+        '200':
+          description: Base connectée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SanteBase'
+        '503':
+          $ref: '#/components/responses/Indisponible'
+        '500':
+          $ref: '#/components/responses/ErreurInterne'
+  /api/v1/parcelles/{id}/mesures/agregats:
+    get:
+      tags:
+      - Mesures
+      summary: Agréger les mesures valides sur 1 à 7 jours
+      operationId: agregerMesures
+      security:
+      - bearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/ParcelleId'
+      - name: intervalle
+        in: query
+        schema:
+          type: string
+          enum:
+          - heure
+          - jour
+          default: heure
+      - name: jours
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 7
+          default: 1
+      responses:
+        '200':
+          description: Moyenne, minimum, maximum et nombre par capteur et intervalle
+            ; valeurs invalides exclues
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AgregatMesure'
+        '401':
+          $ref: '#/components/responses/NonAutorise'
+        '404':
+          $ref: '#/components/responses/Introuvable'
+        '422':
+          $ref: '#/components/responses/DonneesInvalides'
+        '500':
+          $ref: '#/components/responses/ErreurInterne'
+        '503':
+          $ref: '#/components/responses/Indisponible'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    ParcelleId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+  responses:
+    RoleInsuffisant:
+      description: Le rôle dans cette exploitation ne permet pas cette opération
+      content: *id001
+    CodeParcelleExistant:
+      description: Code de parcelle déjà utilisé dans cette exploitation
+      content: *id001
+    DonneesInvalides:
+      description: Données invalides
+      content: *id001
+    NonAutorise:
+      description: Authentification requise ou invalide
+      content: *id001
+    Introuvable:
+      description: Ressource introuvable ou inaccessible
+      content: *id001
+    Indisponible:
+      description: Base de données indisponible
+      content: *id001
+    ErreurInterne:
+      description: Erreur interne
+      content: *id001
+
+  schemas:
+    Body_creerDiagnostic:
+      properties:
+        image:
+          type: string
+          format: binary
+          title: Image
+      type: object
+      required:
+      - image
+      title: Body_creerDiagnostic
+    Diagnostic:
+      properties:
+        id:
+          type: integer
+          title: Id
+        parcelle:
+          type: integer
+          title: Parcelle
+        auteur:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Auteur
+        image_url:
+          type: string
+          title: Image Url
+        statut:
+          type: string
+          title: Statut
+        classe:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Classe
+        score:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Score
+        modele:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Modele
+        confirme:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Confirme
+        cree_le:
+          type: string
+          format: date-time
+          title: Cree Le
+        termine_le:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Termine Le
+      type: object
+      required:
+      - id
+      - parcelle
+      - auteur
+      - image_url
+      - statut
+      - classe
+      - score
+      - modele
+      - confirme
+      - cree_le
+      - termine_le
+      title: Diagnostic
+    ConfigurationArrosage:
+      properties:
+        active:
+          type: boolean
+          title: Active
+          default: false
+        latitude:
+          type: number
+          maximum: 90.0
+          minimum: -90.0
+          title: Latitude
+        longitude:
+          type: number
+          maximum: 180.0
+          minimum: -180.0
+          title: Longitude
+        seuil:
+          type: number
+          maximum: 100.0
+          minimum: 0.0
+          title: Seuil
+        duree_s:
+          type: integer
+          maximum: 3600.0
+          minimum: 10.0
+          title: Duree S
+        delai_min_s:
+          type: integer
+          maximum: 604800.0
+          minimum: 600.0
+          title: Delai Min S
+      type: object
+      required:
+      - latitude
+      - longitude
+      - seuil
+      - duree_s
+      - delai_min_s
+      title: ConfigurationArrosage
+    QuestionAgronome:
+      properties:
+        question:
+          type: string
+          maxLength: 1000
+          minLength: 3
+          title: Question
+      type: object
+      required:
+      - question
+      title: QuestionAgronome
+    NouvelleCommandeVanne:
+      properties:
+        action:
+          type: string
+          enum:
+          - ouvrir
+          - fermer
+          title: Action
+        duree_s:
+          anyOf:
+          - type: integer
+            maximum: 3600.0
+            minimum: 10.0
+          - type: 'null'
+          title: Duree S
+      additionalProperties: false
+      type: object
+      required:
+      - action
+      title: NouvelleCommandeVanne
+    
+    RecommandationIrrigation:
+      properties:
+        parcelle_id:
+          type: integer
+          title: Parcelle Id
+        humidite_sol:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Humidite Sol
+        seuil_sec:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Seuil Sec
+        pluie_prevue_mm:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Pluie Prevue Mm
+        temperature_moyenne_c:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Temperature Moyenne C
+        decision:
+          type: string
+          enum:
+          - arroser
+          - attendre
+          - donnees_insuffisantes
+          title: Decision
+        raison:
+          type: string
+          title: Raison
+        mode:
+          type: string
+          const: simulation
+          title: Mode
+          default: simulation
+        source_meteo:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Source Meteo
+      type: object
+      required:
+      - parcelle_id
+      - humidite_sol
+      - seuil_sec
+      - pluie_prevue_mm
+      - temperature_moyenne_c
+      - decision
+      - raison
+      title: RecommandationIrrigation
+    CommandeVanne:
+      properties:
+        id:
+          type: string
+          title: Id
+        equipement:
+          type: integer
+          title: Equipement
+        action:
+          type: string
+          title: Action
+        duree_s:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Duree S
+        origine:
+          type: string
+          title: Origine
+        statut:
+          type: string
+          title: Statut
+        cree_le:
+          type: string
+          format: date-time
+          title: Cree Le
+      type: object
+      required:
+      - id
+      - equipement
+      - action
+      - duree_s
+      - origine
+      - statut
+      - cree_le
+      title: CommandeVanne
+    ModificationParcelle:
+      type: object
+      # Conserve ici tout le contenu existant
+      # de ModificationParcelle.
+    ModificationParcelle:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      description: Les champs omis sont conservés. Seule la surface accepte null.
+        Le code et l'exploitation sont immuables.
+      properties:
+        nom:
+          type: string
+          minLength: 1
+          maxLength: 80
+        culture:
+          type: string
+          minLength: 1
+          maxLength: 30
+        surface_m2:
+          type:
+          - number
+          - 'null'
+          exclusiveMinimum: 0
+          maximum: 99999999.99
+          multipleOf: 0.01
+        seuil_sec:
+          type: number
+          minimum: 0
+          maximum: 100
+          multipleOf: 0.01
+    
+    DerniereMesure:
+      type: object
+      required:
+        - valeur
+        - ts
+      properties:
+        valeur:
+          type: number
+        ts:
+          type: string
+          format: date-time
+
+    EtatCapteur:
+      properties:
+        id:
+          type: integer
+          title: Id
+        type:
+          type: string
+          title: Type
+        grandeur:
+          type: string
+          title: Grandeur
+        unite:
+          type: string
+          title: Unite
+        actif:
+          type: boolean
+          title: Actif
+        en_ligne:
+          type: boolean
+          title: En Ligne
+        derniere_mesure:
+          anyOf:
+          - $ref: '#/components/schemas/DerniereMesure'
+          - type: 'null'
+      type: object
+      required:
+      - id
+      - type
+      - grandeur
+      - unite
+      - actif
+      - en_ligne
+      title: EtatCapteur
+    EtatVanne:
+      properties:
+        id:
+          type: integer
+          title: Id
+        type:
+          type: string
+          title: Type
+        etat:
+          type: string
+          title: Etat
+        maj_le:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Maj Le
+      type: object
+      required:
+      - id
+      - type
+      - etat
+      title: EtatVanne
+    ResumeCapteurs:
+      type: object
+      required:
+        - total
+        - actifs
+        - en_ligne
+      properties:
+        total:
+          type: integer
+        actifs:
+          type: integer
+        en_ligne:
+          type: integer
+
+    TableauDeBord:
+      type: object
+      required:
+        - parcelle
+        - capteurs
+        - resume_capteurs
+        - vannes
+        - actualise_le
+      properties:
+        parcelle:
+          $ref: '#/components/schemas/Parcelle'
+        capteurs:
+          type: array
+          items:
+            $ref: '#/components/schemas/EtatCapteur'
+        resume_capteurs:
+          $ref: '#/components/schemas/ResumeCapteurs'
+        vannes:
+          type: array
+          items:
+            $ref: '#/components/schemas/EtatVanne'
+        actualise_le:
+          type: string
+          format: date-time
+
+    CreationParcelle:
+      type: object
+      additionalProperties: false
+      required:
+      - exploitation
+      - code
+      - nom
+      - culture
+      properties:
+        exploitation:
+          type: integer
+          minimum: 1
+        code:
+          type: string
+          minLength: 1
+          maxLength: 30
+          pattern: ^[A-Za-z0-9_-]+$
+        nom:
+          type: string
+          minLength: 1
+          maxLength: 80
+        culture:
+          type: string
+          minLength: 1
+          maxLength: 30
+        surface_m2:
+          type:
+          - number
+          - 'null'
+          exclusiveMinimum: 0
+          maximum: 99999999.99
+          multipleOf: 0.01
+          default: null
+        seuil_sec:
+          type: number
+          minimum: 0
+          maximum: 100
+          multipleOf: 0.01
+          default: 25
+    Parcelle:
+      type: object
+      required:
+      - id
+      - exploitation
+      - code
+      - nom
+      - culture
+      - surface_m2
+      - seuil_sec
+      properties:
+        id:
+          type: integer
+        exploitation:
+          type: integer
+        code:
+          type: string
+          examples:
+          - p1
+        nom:
+          type: string
+        culture:
+          type: string
+        surface_m2:
+          type:
+          - number
+          - 'null'
+        seuil_sec:
+          type:
+          - number
+          - 'null'
+    Mesure:
+      type: object
+      required:
+      - ts
+      - capteur
+      - valeur
+      - valide
+      properties:
+        ts:
+          type: string
+          format: date-time
+        capteur:
+          type: integer
+        valeur:
+          type: number
+        valide:
+          type: boolean
+    Probleme:
+      type: object
+      required:
+      - type
+      - title
+      - status
+      properties:
+        type:
+          type: string
+          format: uri-reference
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
+    Inscription:
+      type: object
+      required:
+      - prenom
+      - nom
+      - courriel
+      - mot_de_passe
+      - code_exploitation
+      - nom_exploitation
+      - commune
+      properties:
+        prenom:
+          type: string
+          minLength: 1
+          maxLength: 40
+        nom:
+          type: string
+          minLength: 1
+          maxLength: 40
+        courriel:
+          type: string
+          format: email
+          maxLength: 120
+        mot_de_passe:
+          type: string
+          minLength: 12
+          maxLength: 128
+          writeOnly: true
+        code_exploitation:
+          type: string
+          minLength: 1
+          maxLength: 30
+          pattern: ^[A-Za-z0-9_-]+$
+        nom_exploitation:
+          type: string
+          minLength: 1
+          maxLength: 80
+        commune:
+          type: string
+          minLength: 1
+          maxLength: 80
+      additionalProperties: false
+    Connexion:
+      type: object
+      required:
+      - courriel
+      - mot_de_passe
+      properties:
+        courriel:
+          type: string
+          format: email
+          maxLength: 120
+        mot_de_passe:
+          type: string
+          writeOnly: true
+          minLength: 1
+          maxLength: 128
+      additionalProperties: false
+    UtilisateurPublic:
+      type: object
+      required:
+      - id
+      - prenom
+      - nom
+      - courriel
+      - exploitation_id
+      properties:
+        id:
+          type: integer
+        prenom:
+          type: string
+        nom:
+          type: string
+        courriel:
+          type: string
+          format: email
+        exploitation_id:
+          type: integer
+    Jeton:
+      type: object
+      required:
+      - access_token
+      - token_type
+      properties:
+        access_token:
+          type: string
+        token_type:
+          type: string
+          const: bearer
+    Sante:
+      type: object
+      required:
+      - statut
+      - service
+      properties:
+        statut:
+          type: string
+        service:
+          type: string
+    SanteBase:
+      type: object
+      required:
+      - statut
+      - database
+      properties:
+        statut:
+          type: string
+        database:
+          type: string
+    AgregatMesure:
+      type: object
+      required:
+      - ts
+      - capteur
+      - moyenne
+      - minimum
+      - maximum
+      - nombre
+      properties:
+        ts:
+          type: string
+          format: date-time
+        capteur:
+          type: integer
+        moyenne:
+          type: number
+        minimum:
+          type: number
+        maximum:
+          type: number
+        nombre:
+          type: integer

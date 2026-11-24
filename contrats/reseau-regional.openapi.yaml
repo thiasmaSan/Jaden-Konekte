@@ -1,0 +1,332 @@
+openapi: 3.1.0
+info:
+  title: Réseau régional d'alertes Jaden Konekté
+  version: 1.0.0
+  summary: Annuaire des plateformes et diffusion des alertes phytosanitaires entre groupes.
+  description: |
+    Serveur central hébergé par l'enseignant.
+
+    **Principe**
+    1. Chaque groupe inscrit sa plateforme (`POST /v1/plateformes`) et reçoit un jeton.
+    2. Lorsqu'une plateforme détecte une maladie (diagnostic CNN confirmé), elle publie
+       une alerte (`POST /v1/alertes`) avec son jeton.
+    3. Le serveur central relaie l'alerte à toutes les autres plateformes inscrites, en
+       appelant leur webhook (`POST {url_webhook}`), signé en HMAC-SHA256.
+
+    **Webhook à implémenter par chaque groupe** : voir le chemin `/webhooks/alertes`
+    (documenté ici comme `webhooks.alerteRecue`).
+
+    Les erreurs suivent la RFC 9457 (`application/problem+json`).
+  contact:
+    name: Dr. Emmanuel Biabiany — Université des Antilles
+servers:
+  - url: http://SERVEUR-CENTRAL:8080
+    description: À remplacer par l'adresse communiquée en TP
+
+tags:
+  - name: plateformes
+    description: Annuaire des plateformes des groupes
+  - name: alertes
+    description: Publication et consultation des alertes
+  - name: supervision
+
+paths:
+  /v1/sante:
+    get:
+      tags: [supervision]
+      summary: État du serveur central
+      operationId: sante
+      responses:
+        '200':
+          description: Serveur opérationnel
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statut: { type: string, example: ok }
+                  plateformes: { type: integer, example: 7 }
+                  alertes: { type: integer, example: 23 }
+
+  /v1/plateformes:
+    post:
+      tags: [plateformes]
+      summary: Inscrire la plateforme d'un groupe
+      description: |
+        Renvoie un jeton (`token`) à conserver côté serveur du groupe : il authentifie
+        les publications d'alertes. Le `secret` sert à signer les webhooks envoyés
+        au groupe ; il n'est jamais renvoyé.
+      operationId: inscrirePlateforme
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PlateformeIn' }
+      responses:
+        '201':
+          description: Plateforme inscrite
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PlateformeInscrite' }
+        '409':
+          description: Un groupe de ce nom est déjà inscrit
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Probleme' }
+        '422':
+          description: Données invalides
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Probleme' }
+    get:
+      tags: [plateformes]
+      summary: Lister les plateformes inscrites
+      operationId: listerPlateformes
+      responses:
+        '200':
+          description: Liste des plateformes (sans secrets ni jetons)
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Plateforme' }
+
+  /v1/alertes:
+    post:
+      tags: [alertes]
+      summary: Publier une alerte
+      operationId: publierAlerte
+      security:
+        - jetonPlateforme: []
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: false
+          description: Identifiant unique côté émetteur ; une alerte rejouée avec la même clé n'est pas dupliquée.
+          schema: { type: string, maxLength: 64 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AlerteIn' }
+      responses:
+        '202':
+          description: Alerte acceptée ; la diffusion aux autres plateformes est asynchrone
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Alerte' }
+        '200':
+          description: Alerte déjà reçue avec cette Idempotency-Key (renvoyée à l'identique)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Alerte' }
+        '401':
+          description: Jeton absent ou invalide
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Probleme' }
+        '422':
+          description: Données invalides
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Probleme' }
+    get:
+      tags: [alertes]
+      summary: Consulter les alertes
+      operationId: listerAlertes
+      parameters:
+        - name: depuis
+          in: query
+          description: Ne renvoyer que les alertes émises après cette date (ISO 8601)
+          schema: { type: string, format: date-time }
+        - name: commune
+          in: query
+          schema: { type: string }
+        - name: culture
+          in: query
+          schema: { $ref: '#/components/schemas/Culture' }
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 200, default: 50 }
+      responses:
+        '200':
+          description: Alertes, les plus récentes d'abord
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Alerte' }
+
+  /v1/alertes/{id}/livraisons:
+    get:
+      tags: [supervision]
+      summary: Suivi de la diffusion d'une alerte (webhooks appelés, statuts)
+      operationId: livraisonsAlerte
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Tentatives de livraison
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Livraison' }
+        '404':
+          description: Alerte inconnue
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Probleme' }
+
+webhooks:
+  alerteRecue:
+    post:
+      summary: "Webhook à implémenter par chaque groupe : POST {url_webhook}"
+      description: |
+        Le serveur central appelle l'URL déclarée à l'inscription pour chaque nouvelle
+        alerte émise par un autre groupe.
+
+        **Vérification obligatoire** : l'en-tête `X-Jaden-Signature` vaut
+        `sha256=<hex>` où `<hex>` = HMAC-SHA256(secret, corps brut de la requête).
+        Comparer en temps constant (`hmac.compare_digest`) et refuser (401) si invalide.
+
+        Répondre `204` rapidement (< 5 s). En cas d'échec, le serveur central
+        réessaie jusqu'à 3 fois (2 s, 8 s, 30 s). L'en-tête `X-Jaden-Alerte` porte
+        l'identifiant de l'alerte : l'utiliser pour ignorer les doublons.
+      parameters:
+        - name: X-Jaden-Signature
+          in: header
+          required: true
+          schema: { type: string, example: "sha256=5d41402abc4b2a76b9719d911017c592..." }
+        - name: X-Jaden-Alerte
+          in: header
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Alerte' }
+      responses:
+        '204':
+          description: Alerte bien reçue
+        '401':
+          description: Signature invalide
+
+components:
+  securitySchemes:
+    jetonPlateforme:
+      type: http
+      scheme: bearer
+      description: Jeton renvoyé lors de l'inscription de la plateforme
+
+  schemas:
+    Culture:
+      type: string
+      enum: [tomate, igname, christophine, banane, piment, laitue, autre]
+
+    PlateformeIn:
+      type: object
+      required: [groupe, nom, url_base, url_webhook, secret]
+      properties:
+        groupe: { type: string, minLength: 2, maxLength: 40, example: groupe-3 }
+        nom: { type: string, maxLength: 80, example: "Jaden Lanmou" }
+        membres:
+          type: array
+          items: { type: string }
+          maxItems: 6
+        url_base: { type: string, format: uri, example: "http://10.2.2.31:8000" }
+        url_webhook: { type: string, format: uri, example: "http://10.2.2.31:8000/webhooks/alertes" }
+        secret:
+          type: string
+          minLength: 16
+          maxLength: 128
+          description: Secret partagé utilisé pour signer les webhooks envoyés à ce groupe
+
+    Plateforme:
+      type: object
+      required: [id, groupe, nom, url_base, inscrite_le]
+      properties:
+        id: { type: string, example: "plt_4f2a9c" }
+        groupe: { type: string }
+        nom: { type: string }
+        membres:
+          type: array
+          items: { type: string }
+        url_base: { type: string, format: uri }
+        inscrite_le: { type: string, format: date-time }
+
+    PlateformeInscrite:
+      allOf:
+        - $ref: '#/components/schemas/Plateforme'
+        - type: object
+          required: [token]
+          properties:
+            token:
+              type: string
+              description: À conserver ; il ne sera plus jamais affiché
+
+    AlerteIn:
+      type: object
+      required: [type, culture, commune, gravite, observee_le]
+      properties:
+        type:
+          type: string
+          enum: [maladie, ravageur, meteo, secheresse]
+        culture: { $ref: '#/components/schemas/Culture' }
+        maladie:
+          type: string
+          description: Classe prédite par le CNN ou libellé libre
+          example: tomato_late_blight
+        score:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: Confiance du modèle (si diagnostic automatique)
+        gravite:
+          type: string
+          enum: [faible, moyenne, forte]
+        commune: { type: string, example: "Capesterre-Belle-Eau" }
+        position:
+          type: object
+          properties:
+            lat: { type: number, minimum: -90, maximum: 90 }
+            lon: { type: number, minimum: -180, maximum: 180 }
+        message: { type: string, maxLength: 500 }
+        observee_le: { type: string, format: date-time }
+
+    Alerte:
+      allOf:
+        - $ref: '#/components/schemas/AlerteIn'
+        - type: object
+          required: [id, emetteur, recue_le]
+          properties:
+            id: { type: string, example: "alt_9b1e0d7c" }
+            emetteur:
+              type: object
+              properties:
+                groupe: { type: string }
+                nom: { type: string }
+            recue_le: { type: string, format: date-time }
+
+    Livraison:
+      type: object
+      properties:
+        groupe: { type: string }
+        tentative: { type: integer }
+        statut: { type: string, enum: [succes, echec, en_attente] }
+        code_http: { type: [integer, "null"] }
+        erreur: { type: [string, "null"] }
+        horodatage: { type: string, format: date-time }
+
+    Probleme:
+      type: object
+      description: RFC 9457 Problem Details
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }

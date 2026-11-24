@@ -1,0 +1,16 @@
+# Droits par utilisateur MQTT (principe du moindre privilège)
+
+# Le service d'ingestion / l'API lit toutes les mesures et commande les vannes
+user api
+topic read jaden/#
+topic write jaden/+/+/vanne/cmd
+
+# Chaque capteur ne publie que sur SA parcelle et n'écoute que SES commandes
+user capteur-p1
+topic write jaden/expl-1/p1/#
+topic read jaden/expl-1/p1/vanne/cmd
+
+# Le tableau de bord (navigateur, via WebSocket) : lecture seule
+user dashboard
+topic read jaden/+/+/+/+
+topic read jaden/+/+/vanne/etat

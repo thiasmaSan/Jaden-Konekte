@@ -1,0 +1,50 @@
+# ==========================================
+# JADEN KONEKTE - Gitignore
+# ==========================================
+
+# Variables d'environnement et secrets
+.env
+.env.*
+!.env.example
+
+# Environnements virtuels Python
+.venv/
+venv/
+env/
+
+# Fichiers temporaires Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.mypy_cache/
+
+# Fichiers système macOS
+.DS_Store
+__MACOSX/
+._*
+
+# Environnements de développement
+.vscode/
+.idea/
+
+# Logs et fichiers temporaires
+*.log
+*.tmp
+
+# Données locales et sauvegardes
+*.dump
+*.sqlite3
+*.bak
+
+# Documents universitaires privés
+*.pages
+Projet_2026_Jaden_Konekte.pdf
+Rapport_Jaden_Konekte_provisoire.pdf
+
+# Couverture des tests
+.coverage
+htmlcov/
+
+# Dépendances JavaScript
+node_modules/

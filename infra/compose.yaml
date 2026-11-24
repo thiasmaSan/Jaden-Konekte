@@ -1,0 +1,191 @@
+# Jaden Konekté : API, ingestion, broker sécurisé et base de séries temporelles.
+#   docker compose up -d
+services:
+  ollama:
+    image: ollama/ollama:latest
+    volumes:
+      - ollama-data:/root/.ollama
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  ollama-init:
+    image: ollama/ollama:latest
+    entrypoint: ["/bin/sh", "-ec", 'ollama pull "$$RAG_MODELE_EMBEDDING" && ollama pull "$$RAG_MODELE_LLM"']
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+      RAG_MODELE_EMBEDDING: ${RAG_MODELE_EMBEDDING:-embeddinggemma}
+      RAG_MODELE_LLM: ${RAG_MODELE_LLM:-qwen2.5:1.5b}
+    depends_on:
+      ollama:
+        condition: service_healthy
+
+  inference-cnn:
+    build:
+      context: ..
+      dockerfile: ia/inference/Dockerfile
+    volumes:
+      - ../ia/cnn:/modeles:ro
+    environment:
+      MODEL_DIR: /modeles
+      MODEL_VERSION: mobilenetv3-small-v1
+    ports:
+      - "127.0.0.1:8001:8001"
+    restart: unless-stopped
+  
+  api:
+    build: ../api
+    env_file:
+      - ../api/.env
+    environment:
+      DATABASE_URL: postgresql://jaden:${POSTGRES_PASSWORD:?Configurer POSTGRES_PASSWORD dans infra/.env}@db:5432/jaden
+      MQTT_HOST: mqtt
+      MQTT_PORT: 1883
+      MQTT_USER: api
+      MQTT_PASSWORD_FILE: /run/credentials/mqtt/password
+      CNN_URL: http://inference-cnn:8001
+      OLLAMA_URL: http://ollama:11434
+      RAG_FICHES: /fiches
+      RAG_MODELE_EMBEDDING: ${RAG_MODELE_EMBEDDING:-embeddinggemma}
+      RAG_MODELE_LLM: ${RAG_MODELE_LLM:-qwen2.5:1.5b}
+    ports:
+      - "127.0.0.1:8000:8000"
+
+    volumes:
+      - mqtt-api-secret:/run/credentials/mqtt:ro
+      - ../frontend:/frontend:ro
+      - ../ia/rag/fiches:/fiches:ro
+ 
+    depends_on:
+      db:
+        condition: service_healthy
+      mqtt:
+        condition: service_healthy
+      inference-cnn:
+        condition: service_started
+      db-migrations:
+        condition: service_completed_successfully
+
+  mqtt-init:
+    image: eclipse-mosquitto:2
+    user: "0:0"
+    entrypoint: ["/bin/sh", "/initialiser.sh"]
+    environment:
+      SIMULATION_EXPLOITATION_CODE: ${SIMULATION_EXPLOITATION_CODE:-}
+    volumes:
+      - ./mosquitto/initialiser.sh:/initialiser.sh:ro
+      - mqtt-auth:/auth
+      - mqtt-ingestion-secret:/credentials/ingestion
+      - mqtt-simulateur-secret:/credentials/simulateur
+      - mqtt-api-secret:/credentials/api
+
+
+  mqtt:
+    image: eclipse-mosquitto:2
+    ports:
+      - "127.0.0.1:1883:1883"      # MQTT
+      - "127.0.0.1:9001:9001"      # MQTT sur WebSocket (navigateur)
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - mqtt-data:/mosquitto/data
+      - mqtt-auth:/mosquitto/auth:ro
+      - mqtt-ingestion-secret:/run/credentials/ingestion:ro
+      - mqtt-api-secret:/run/credentials/api:ro
+      - ./mosquitto/verifier.sh:/verifier.sh:ro
+    depends_on:
+      mqtt-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "/bin/sh", "/verifier.sh"]
+      interval: 5s
+      timeout: 6s
+      retries: 10
+
+  ingestion:
+    build: ../ingestion
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://jaden:${POSTGRES_PASSWORD:?Configurer POSTGRES_PASSWORD dans infra/.env}@db:5432/jaden
+      MQTT_HOST: mqtt
+      MQTT_USER: ingestion
+      MQTT_PASSWORD_FILE: /run/credentials/mqtt/password
+    volumes:
+      - mqtt-ingestion-secret:/run/credentials/mqtt:ro
+    depends_on:
+      db:
+        condition: service_healthy
+      mqtt:
+        condition: service_healthy
+
+  db:
+    image: timescale/timescaledb-ha:pg16   # inclut TimescaleDB et pgvector
+    environment:
+      POSTGRES_USER: jaden
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Configurer POSTGRES_PASSWORD dans infra/.env}
+      POSTGRES_DB: jaden
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - ./sql/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - db-data:/home/postgres/pgdata/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U jaden -d jaden"]
+      interval: 5s
+      retries: 10
+
+  db-migrations:
+    image: timescale/timescaledb-ha:pg16
+    entrypoint: ["psql", "-v", "ON_ERROR_STOP=1", "-f", "/migrations/002_rag.sql"]
+    environment:
+      PGHOST: db
+      PGUSER: jaden
+      PGDATABASE: jaden
+      PGPASSWORD: ${POSTGRES_PASSWORD:?Configurer POSTGRES_PASSWORD dans infra/.env}
+    volumes:
+      - ./sql/migrations:/migrations:ro
+    depends_on:
+      db:
+        condition: service_healthy
+
+  simulateur:
+    build: ../simulateur
+    command: ["python", "simulateur_capteurs.py", "--broker", "mqtt",
+              "--parcelles", "p1", "p2", "p3", "--acceleration", "1"]
+    environment:
+      MQTT_USER: simulateur
+      MQTT_PASSWORD_FILE: /run/credentials/mqtt/password
+      MQTT_EXPLOITATION_FILE: /run/credentials/mqtt/exploitation
+    volumes:
+      - mqtt-simulateur-secret:/run/credentials/mqtt:ro
+    depends_on:
+      mqtt:
+        condition: service_healthy
+      ingestion:
+        condition: service_started
+    profiles: ["simu"]     # docker compose --profile simu up -d
+
+  verification:
+    build: ../ingestion
+    profiles: ["test"]
+    command: ["python", "-m", "app.verifier_chaine", "--exploitation-id", "1"]
+    environment:
+      DATABASE_URL: postgresql://jaden:${POSTGRES_PASSWORD:?Configurer POSTGRES_PASSWORD dans infra/.env}@db:5432/jaden
+      MQTT_HOST: mqtt
+    volumes:
+      - mqtt-simulateur-secret:/run/credentials/simulateur:ro
+      - mqtt-ingestion-secret:/run/credentials/ingestion:ro
+    depends_on:
+      ingestion:
+        condition: service_started
+
+volumes:
+  ollama-data:
+  mqtt-data:
+  db-data:
+  mqtt-auth:
+  mqtt-ingestion-secret:
+  mqtt-simulateur-secret:
+  mqtt-api-secret:

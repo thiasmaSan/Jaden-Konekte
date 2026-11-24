@@ -1,0 +1,218 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Jaden Konekté — Tableau de bord</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="/static/app.js?v=4" defer></script>
+</head>
+
+<body>
+    <header>
+        <h1>Jaden Konekté</h1>
+        <p>Supervision des exploitations agricoles</p>
+    </header>
+
+    <main>
+        <section id="connexion">
+            <h2>Connexion</h2>
+            <p>Vous n'avez pas encore de compte ?</p>
+            <button id="afficher-inscription" type="button">
+                S'inscrire
+            </button>
+            <form id="form-connexion">
+                <label for="courriel">Courriel</label>
+                <input id="courriel" type="email" required>
+
+                <label for="mot-de-passe">Mot de passe</label>
+                <input id="mot-de-passe"
+                       type="password" required>
+
+                <button type="submit">Se connecter</button>
+            </form>
+        </section>
+
+        <section id="inscription" hidden>
+            <h2>Créer un compte</h2>
+
+            <form id="form-inscription">
+                <label for="ins-prenom">Prénom</label>
+                <input id="ins-prenom" required maxlength="40">
+
+                <label for="ins-nom">Nom</label>
+                <input id="ins-nom" required maxlength="40">
+
+                <label for="ins-courriel">Courriel</label>
+                <input id="ins-courriel" type="email" required>
+
+                <label for="ins-password">Mot de passe</label>
+                <input id="ins-password" type="password"
+                    minlength="12" maxlength="128" required>
+
+                <label for="ins-code">Code de l'exploitation</label>
+                <input id="ins-code" required maxlength="30"
+                    pattern="[A-Za-z0-9_\-]+"
+                    placeholder="FERME001">
+
+                <label for="ins-exploitation">Nom de l'exploitation</label>
+                <input id="ins-exploitation" required maxlength="80">
+
+                <label for="ins-commune">Commune</label>
+                <input id="ins-commune" required maxlength="80">
+
+                <button type="submit">Créer mon compte</button>
+                <button id="retour-connexion" type="button">
+                    Retour à la connexion
+                </button>
+            </form>
+        </section>
+
+
+        <section id="dashboard" hidden>
+            <div class="toolbar">
+                <label for="parcelle">Parcelle :</label>
+                <select id="parcelle"></select>
+
+                <button id="actualiser">Actualiser</button>
+                <button id="deconnexion">Déconnexion</button>
+            </div>
+
+            <h2 id="nom-parcelle">Tableau de bord</h2>
+
+            <div id="resume" class="cartes"></div>
+
+            <h2>Capteurs</h2>
+            <div id="capteurs" class="cartes"></div>
+
+            <h2>Historique des mesures</h2>
+            <label for="capteur-graphique">
+                Capteur à afficher
+            </label>
+            <select id="capteur-graphique"></select>
+            <label for="periode-graphique">Période</label>
+            <select id="periode-graphique">
+                <option value="1">24 heures</option>
+                <option value="7">7 jours</option>
+            </select>
+            <canvas id="graphique" height="240"></canvas>
+            <section id="panneau-irrigation">
+                <h2>Météo et irrigation</h2>
+
+                <div class="coordonnees">
+                <label>
+                    Latitude
+                <input
+                    id="latitude-exploitation"
+                    type="number"
+                    step="any"
+                    min="-90"
+                    max="90"
+                    placeholder="Latitude"
+                >
+            </label>
+
+            <label>
+                Longitude
+                <input
+                    id="longitude-exploitation"
+                    type="number"
+                    step="any"
+                    min="-180"
+                    max="180"
+                    placeholder="Longitude"
+                >
+            </label>
+        </div>
+
+    <button
+        id="analyser-irrigation"
+        type="button"
+    >
+        Analyser l'irrigation
+    </button>
+
+    <div id="resultat-irrigation"
+         class="carte"
+         role="status"
+         aria-live="polite">
+        Aucune analyse effectuée.
+    </div>
+    <form id="form-regle">
+        <h3>Règle d’arrosage automatique</h3>
+        <label for="regle-active">Activer la règle</label>
+        <input id="regle-active" type="checkbox">
+        <label for="regle-seuil">Seuil d’humidité (%)</label>
+        <input id="regle-seuil" type="number" min="0" max="100" step="0.1" value="25" required>
+        <label for="regle-duree">Durée (secondes)</label>
+        <input id="regle-duree" type="number" min="10" max="3600" value="600" required>
+        <label for="regle-delai">Délai minimal (minutes)</label>
+        <input id="regle-delai" type="number" min="10" max="10080" value="60" required>
+        <button type="submit">Enregistrer la règle pour ces coordonnées</button>
+        <p id="statut-regle" role="status"></p>
+    </form>
+</section>
+
+            <h2>Vannes d'irrigation</h2>
+            <section id="commande-vanne">
+                <h2>Commande manuelle d'irrigation</h2>
+                <label for="duree-arrosage">Durée d'ouverture (secondes)</label>
+                <input
+                    id="duree-arrosage"
+                    type="number"
+                    min="10"
+                    max="3600"
+                    value="600"
+                >
+
+                <div class="actions-vanne">
+                    <button id="ouvrir-vanne" type="button">Ouvrir la vanne</button>
+                    <button id="fermer-vanne" type="button">Fermer la vanne</button>
+                </div>
+
+                <p id="statut-commande"
+                    role="status"
+                    aria-live="polite">
+                    Aucune commande en cours
+                </p>
+            </section>
+
+            <div id="vannes" class="cartes"></div>
+
+            <section>
+                <h2>Diagnostic de la tomate</h2>
+                <form id="form-diagnostic">
+                    <label for="image-diagnostic">Photo de feuille (JPEG ou PNG, jusqu’à 5 Mo)</label>
+                    <input id="image-diagnostic" type="file" accept="image/jpeg,image/png" required>
+                    <button type="submit">Analyser la photo</button>
+                </form>
+                <p id="resultat-diagnostic" role="status"></p>
+            </section>
+
+            <section>
+                <h2>Assistant agronome</h2>
+                <form id="form-assistant">
+                    <label for="question-assistant">Votre question</label>
+                    <input id="question-assistant" minlength="3" maxlength="1000" required>
+                    <button type="submit">Poser la question</button>
+                </form>
+                <p id="resultat-assistant" style="white-space: pre-wrap"></p>
+                <ul id="sources-assistant"></ul>
+                <p id="statut-assistant" role="status"></p>
+            </section>
+
+            <p id="date-actualisation"></p>
+            <div class="etat-connexion">
+                <span id="voyant-connexion" class="voyant voyant-attente"></span>
+                <span id="texte-connexion">Connexion au flux en attente</span>
+            </div>
+
+        </section>
+
+        <p id="message" role="status" aria-live="polite"></p>
+    </main>
+</body>
+</html>
